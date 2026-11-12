@@ -66,6 +66,8 @@ jobs:
   deploy-status-page:
     name: Deploy Status Page to S3
     runs-on: ubuntu-latest
+    env:
+      CLOUDFRONT_DISTRIBUTION_ID: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }}
     needs: test
     if: github.ref == 'refs/heads/main'
 
@@ -86,13 +88,13 @@ jobs:
             --content-type "text/html" \
             --cache-control "no-cache, max-age=0"
 
-      - name: Invalidate CloudFront cache (optional)
-        if: ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID != '' }}
-        run: |
-          aws cloudfront create-invalidation \
-            --distribution-id ${{ secrets.CLOUDFRONT_DISTRIBUTION_ID }} \
-            --paths "/*"
-
+            - name: Invalidate CloudFront cache (optional)
+              if: ${{ env.CLOUDFRONT_DISTRIBUTION_ID != '' }}
+              run: |
+                aws cloudfront create-invalidation \
+                --distribution-id ${{ env.CLOUDFRONT_DISTRIBUTION_ID }} \
+                --paths "/*"
+            
       - name: Print live URL
         run: |
           echo "✅ Status page live at:"
